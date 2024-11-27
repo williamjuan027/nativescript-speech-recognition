@@ -85,8 +85,10 @@ export class SpeechRecognition implements SpeechRecognitionApi {
               if (error !== null || (result !== null && result.final)) {
                 this.audioEngine.stop();
                 this.inputNode.removeTapOnBus(0);
-                this.audioSession.setCategoryError(AVAudioSessionCategoryPlayback);
-                this.audioSession.setModeError(AVAudioSessionModeDefault);
+                if (this.audioSession && this.audioSession.category === 'AVAudioSessionCategoryPlayback') {
+                  this.audioSession.setCategoryError(AVAudioSessionCategoryPlayback);
+                  this.audioSession.setModeError(AVAudioSessionModeDefault);
+                }
                 this.recognitionRequest = null;
                 this.recognitionTask = null;
               }
@@ -117,7 +119,9 @@ export class SpeechRecognition implements SpeechRecognitionApi {
         reject("Not running");
         return;
       }
-
+      if (this.inputNode) {
+        this.inputNode.removeTapOnBus(0);
+      }
       this.audioEngine.stop();
       this.recognitionRequest.endAudio();
       this.audioSession.setCategoryError(AVAudioSessionCategoryPlayback);
