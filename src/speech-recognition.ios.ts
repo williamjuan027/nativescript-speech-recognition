@@ -90,7 +90,10 @@ export class SpeechRecognition implements SpeechRecognitionApi {
                   this.audioSession.setModeError(AVAudioSessionModeDefault);
                 }
                 this.recognitionRequest = null;
-                this.recognitionTask = null;
+                if(this.recognitionTask){
+                  this.recognitionTask.cancel();
+                  this.recognitionTask = null;
+                }
               }
 
               if (error !== null) {
@@ -113,7 +116,7 @@ export class SpeechRecognition implements SpeechRecognitionApi {
     });
   }
 
-  stopListening(): Promise<any> {
+  stopListening(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.audioEngine.running) {
         reject("Not running");
@@ -127,7 +130,10 @@ export class SpeechRecognition implements SpeechRecognitionApi {
       this.audioSession.setCategoryError(AVAudioSessionCategoryPlayback);
       this.audioSession.setModeError(AVAudioSessionModeDefault);
       this.speechRecognizer = null;
-      this.recognitionTask = null;
+      if(this.recognitionTask){
+        this.recognitionTask.cancel();
+        this.recognitionTask = null;
+    }
       resolve();
     });
   }

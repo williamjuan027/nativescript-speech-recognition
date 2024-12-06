@@ -189,7 +189,7 @@ export class SpeechRecognition implements SpeechRecognitionApi {
     });
   }
 
-  stopListening(): Promise<any> {
+  stopListening(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (this.recognizer === null) {
         reject("Not running");
