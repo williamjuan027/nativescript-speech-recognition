@@ -71,7 +71,6 @@ export class SpeechRecognition implements SpeechRecognitionApi {
         }
 
         this.recognitionRequest.shouldReportPartialResults = options.returnPartialResults;
-
         this.recognitionTask = this.speechRecognizer.recognitionTaskWithRequestResultHandler(
             this.recognitionRequest,
             (result: SFSpeechRecognitionResult, error: NSError) => {
@@ -82,18 +81,19 @@ export class SpeechRecognition implements SpeechRecognitionApi {
                 });
               }
 
-              if (error !== null || (result !== null && result.final)) {
-                this.audioEngine.stop();
-                this.inputNode.removeTapOnBus(0);
+              if (error !== null || (result !== null && result.final) || this.recognitionTask?.cancelled || this.recognitionTask?.finishing) {
+                if (this.audioEngine) {
+                  this.audioEngine.stop();
+                }
+                if (this.inputNode) {
+                  this.inputNode.removeTapOnBus(0);
+                }
                 if (this.audioSession && this.audioSession.category === 'AVAudioSessionCategoryPlayback') {
                   this.audioSession.setCategoryError(AVAudioSessionCategoryPlayback);
                   this.audioSession.setModeError(AVAudioSessionModeDefault);
                 }
                 this.recognitionRequest = null;
-                if(this.recognitionTask){
-                  this.recognitionTask.cancel();
-                  this.recognitionTask = null;
-                }
+                this.recognitionTask = null;
               }
 
               if (error !== null) {
@@ -125,15 +125,18 @@ export class SpeechRecognition implements SpeechRecognitionApi {
       if (this.inputNode) {
         this.inputNode.removeTapOnBus(0);
       }
-      this.audioEngine.stop();
-      this.recognitionRequest.endAudio();
-      this.audioSession.setCategoryError(AVAudioSessionCategoryPlayback);
-      this.audioSession.setModeError(AVAudioSessionModeDefault);
+      if (this.audioEngine) {
+        this.audioEngine.stop();
+      }
+      if (this.recognitionRequest) {
+        this.recognitionRequest.endAudio();
+      }
+      if (this.audioSession) {
+        this.audioSession.setCategoryError(AVAudioSessionCategoryPlayback);
+        this.audioSession.setModeError(AVAudioSessionModeDefault);
+      }
       this.speechRecognizer = null;
-      if(this.recognitionTask){
-        this.recognitionTask.cancel();
-        this.recognitionTask = null;
-    }
+      this.recognitionTask = null
       resolve();
     });
   }
